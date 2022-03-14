@@ -1,6 +1,11 @@
+
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android'
+    id 'kotlin-android-extensions'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -8,12 +13,14 @@ android {
 
     defaultConfig {
         applicationId "com.ravnnerdery.chat_challenge"
-        minSdk 25
+        minSdk 21
         targetSdk 31
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
     }
 
     buildTypes {
@@ -22,6 +29,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        compose true
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -29,15 +39,118 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    dataBinding {
+        enabled = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion "$version_compose"
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
 }
 
 dependencies {
-
+    implementation project(':domain')
+    implementation project(':data')
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
-    testImplementation 'junit:junit:4.13.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.0.1'
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
+    testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    // Support libraries
+    implementation "androidx.appcompat:appcompat:1.4.1"
+    implementation "androidx.fragment:fragment-ktx:1.4.1"
+    implementation "androidx.constraintlayout:constraintlayout:2.1.3"
+
+    // ViewModel and LiveData
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$version_lifecycle"
+
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version_coroutine"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version_coroutine"
+
+    // Navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:$version_navigation"
+    implementation "androidx.navigation:navigation-ui-ktx:$version_navigation"
+
+    // Android KTX
+    implementation "androidx.core:core-ktx:$version_core"
+
+    // Room
+    kapt "androidx.room:room-compiler:$version_room"
+    implementation "androidx.room:room-runtime:$version_room"
+    implementation "androidx.room:room-ktx:$version_room"
+
+    //Dagger Hilt
+    implementation "com.google.dagger:hilt-android:$version_hilt"
+    kapt "com.google.dagger:hilt-android-compiler:$version_hilt"
+
+    // ----- COMPOSE -------
+    // Integration with activities
+    implementation 'androidx.activity:activity-compose:1.4.0'
+    // Compose Material Design
+    implementation "androidx.compose.material:material:$version_compose"
+    // Animations
+    implementation "androidx.compose.animation:animation:$version_compose"
+    // Compose UI
+    implementation 'androidx.compose.ui:ui:1.0.5'
+    // Tooling support (Previews, etc.)
+    implementation "androidx.compose.ui:ui-tooling:$version_compose"
+    // Integration with ViewModels
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0-alpha02'
+    // UI Tests
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$version_compose"
+    // Flow Layout
+    implementation "com.google.accompanist:accompanist-flowlayout:0.24.2-alpha"
+    // Constraint Layout
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0-beta02"
+    // COIL
+    implementation("io.coil-kt:coil-compose:1.4.0")
+    implementation("io.coil-kt:coil-gif:1.4.0")
+    // Swipe refresh
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.19.0"
+
+    //Pager
+    implementation "com.google.accompanist:accompanist-pager:0.24.2-alpha"
+    implementation "com.google.accompanist:accompanist-pager-indicators:0.24.2-alpha"
+
+    //Navigation
+    implementation "androidx.navigation:navigation-compose:$version_compose_nav"
+
+    //Pagination
+    implementation "androidx.compose.compiler:compiler:$version_compose"
+    implementation "androidx.compose.runtime:runtime:$version_compose"
+    implementation "androidx.compose.runtime:runtime-livedata:$version_compose"
+
+    // Pagination
+    implementation "androidx.paging:paging-runtime-ktx:$version_paging"
+    testImplementation "androidx.paging:paging-common-ktx:$version_paging"
+    implementation "androidx.paging:paging-guava:$version_paging"
+    implementation "androidx.paging:paging-compose:1.0.0-alpha14"
+    // Work Manager
+    implementation 'androidx.work:work-runtime-ktx:2.7.0'
+
+    //Firebase
+    implementation platform('com.google.firebase:firebase-bom:29.1.0')
+    // Firebase Firestore
+    implementation 'com.google.firebase:firebase-firestore:24.0.1'
+    // Firebase Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.0'
+    // Firebase Analytics
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
 }
+
