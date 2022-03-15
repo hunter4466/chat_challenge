@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1007832045812",
+    "project_id": "mario-chat-app",
+    "storage_bucket": "mario-chat-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1007832045812:android:d308f4213a604dbbd2a6a1",
+        "android_client_info": {
+          "package_name": "com.ravnnerdery.data"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1007832045812-rrnbk47cf75jbef3a6sd31ne87jlu2s2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6l26FvtErkOAUZa2DkWSAnQR_AtJ6tQM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1007832045812-rrnbk47cf75jbef3a6sd31ne87jlu2s2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

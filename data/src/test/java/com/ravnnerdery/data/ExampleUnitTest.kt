@@ -1,4 +1,4 @@
-package com.ravnnerdery.adata
+package com.ravnnerdery.data
 
 import org.junit.Test
 
