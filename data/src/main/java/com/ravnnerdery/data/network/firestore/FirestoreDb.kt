@@ -10,4 +10,6 @@ interface FirestoreDb {
     fun addMessage(message: String)
     suspend fun getMoreMessages(key: Pair<String, Long>?): List<DocumentSnapshot>
     suspend fun getFirstMessages(): List<DocumentSnapshot>
+    suspend fun getAppendMessages(key: String): List<DocumentSnapshot>
+    suspend fun getPrependMessages(key: String): List<DocumentSnapshot>
 }

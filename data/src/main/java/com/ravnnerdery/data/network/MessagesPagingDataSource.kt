@@ -22,7 +22,6 @@ class MessagesPagingDataSource @Inject constructor(
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
-
     init {
         Log.wtf("MARIOCH", "CALLED INITIALIZE IN PAGING SOURCE")
         uiScope.launch {
@@ -33,7 +32,6 @@ class MessagesPagingDataSource @Inject constructor(
                     invalidate()
                 }
             }
-
         }
         registerInvalidatedCallback {
             dbWrapper.removeObservables()
@@ -48,154 +46,113 @@ class MessagesPagingDataSource @Inject constructor(
         val limit = 10
         var nextKey: String? = null
         var previousKey: String? = null
-        when (params) {
+        val data = when (params) {
             is LoadParams.Refresh -> {
                 Log.wtf("MARIOCH","refresh (Paging Source)")
                 type = "Refresh"
-                nextKey = params.key
-                previousKey = params.key
+                val res = dbWrapper.getLastMessages(limit).map{
+                    Log.wtf("MARIOCH","Loaded ${it.message} in refresh")
+                    it.mapToDomainModel() }
+                if (res.isNotEmpty()) {
+                    nextKey = res.last().messageId
+                    previousKey = res.first().messageId
+                    dbWrapper.updNextRemoteKey(nextKey)
+                    dbWrapper.updPrevRemoteKey(previousKey)
+                }
+                res
             }
             is LoadParams.Append -> {
                 Log.wtf("MARIOCH","append (Paging Source)")
                 type = "Append"
-                nextKey = params.key
+                val res = dbWrapper.getMessagesForAppend(params.key, limit).map {
+                    Log.wtf("MARIOCH","Loaded ${it.message} in append")
+                    it.mapToDomainModel() }
+                if (res.isNotEmpty()) {
+                    nextKey = res.last().messageId
+                    dbWrapper.updNextRemoteKey(nextKey)
+                }
+                res
             }
             is LoadParams.Prepend -> {
                 Log.wtf("MARIOCH","prepend (Paging Source)")
                 type = "Prepend"
-                previousKey = params.key
+                val res = dbWrapper.getMessagesForPrepend(params.key, limit).map {
+                    Log.wtf("MARIOCH","Loaded ${it.message} in prepend")
+                    it.mapToDomainModel() }
+                if (res.isNotEmpty()) {
+                    previousKey = res.first().messageId
+                    dbWrapper.updPrevRemoteKey(previousKey)
+                }
+                res
             }
         }
-        val data = when {
-            nextKey != null -> dbWrapper.getMessagesForAppend(nextKey, limit).map{it.mapToDomainModel()}
-            previousKey != null -> dbWrapper.getMessagesForPrepend(previousKey, limit).map{it.mapToDomainModel()}
-            else -> emptyList()
-        }
-        Log.wtf("MARIOCH","on load keys($type): N(${nextKey}) P(${previousKey})")
-        return LoadResult.Page(data, nextKey, previousKey)
+        Log.wtf("MARIOCH","on load keys($type): N(${nextKey}) P(${previousKey}), data: ${if(data.isEmpty()) "Is empty" else "have${data.size}items"}")
+        return LoadResult.Page(data, previousKey, nextKey )
     }
 
-}
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//class MessagesPagingDataSource @Inject constructor(
-//    private val dbWrapper: DbWrapper
-//) : PagingSource<String, Message>() {
-//    private var jumpFactor: String = "10"
-//    override fun getRefreshKey(state: PagingState<String, Message>): String {
-//        Log.wtf("MARIOCH", "CALLED REFRESH KEY IN PAGING SOURCE")
-//        return state.anchorPosition.toString()
-//    }
-//    init {
-//        Log.wtf("MARIOCH","PAGING DATA SOURCE INITIALIZED")
-//    }
 //
 //    override suspend fun load(params: LoadParams<String>): LoadResult<String, Message> {
-//        Log.wtf("MARIOCH", "TRYING TO PULL DATA")
-//        when(params){
-//            is LoadParams.Refresh -> Log.wtf("MARIOCH", "LOAD IS IN REFRESH")
-//            is LoadParams.Prepend -> Log.wtf("MARIOCH", "LOAD IS IN PREPEND")
-//            is LoadParams.Append -> Log.wtf("MARIOCH", "LOAD IS IN APPEND")
+//        Log.wtf("MARIOCH","Calling Load (Paging Source)")
+//        var type = "Unknown"
+//        val limit = 10
+//        var nextKey: String? = null
+//        var previousKey: String? = null
+//        when (params) {
+//            is LoadParams.Refresh -> {
+//                Log.wtf("MARIOCH","refresh (Paging Source)")
+//                type = "Refresh"
+//            }
+//            is LoadParams.Append -> {
+//                Log.wtf("MARIOCH","append (Paging Source)")
+//                type = "Append"
+//                nextKey = params.key
+//            }
+//            is LoadParams.Prepend -> {
+//                Log.wtf("MARIOCH","prepend (Paging Source)")
+//                type = "Prepend"
+//                previousKey = params.key
+//            }
 //        }
-//        val nextKey: String? = params.key
-//        var previousPageIndex: String? = null
-//        var nextPageIndex: String? = null
-//        val response = try {
-//            if (nextKey == null) {
-//                Log.wtf("MARIOCH", "TRYED FIRST LOAD")
-//                val res = dbWrapper.getLastReadMessages(jumpFactor.toInt())
+//        val data = when {
+//            nextKey != null -> {
+//                val res = dbWrapper.getMessagesForAppend(nextKey, limit).map {
+//                    Log.wtf("MARIOCH","Loaded ${it.message} in append")
+//                    it.mapToDomainModel() }
 //                if (res.isNotEmpty()) {
-//                    dbWrapper.updateNextKeysOnRemoteKey(
-//                        key = "messagesRemoteKey",
-//                        nextKey = res.last().messageId,
-//                        nextKeyTime = "${res.last().time},next"
-//                    )
-//                    dbWrapper.updatePreviousKeysOnRemoteKey(
-//                        key = "messagesRemoteKey",
-//                        prevKey = res.first().messageId,
-//                        prevKeyTime = "${res.first().time},prev"
-//                    )
-//                    previousPageIndex = "${res.first().time},prev"
-//                    nextPageIndex = "${res.last().time},next"
+//                    nextKey = res.last().messageId
 //                }
 //                res
-//            } else {
-//                val splitKey = nextKey.split(",")
-//                if (splitKey[1] == "next") {
-//                    Log.wtf("MARIOCH", "TRYED SECOND LOAD with next")
-//                    delay(1000)
-//                    val res = dbWrapper.getPaginatedNextMessages(
-//                        splitKey[0].toLong(),
-//                        jumpFactor.toInt()
-//                    )
-//                    if (res.isNotEmpty()) {
-//                        dbWrapper.updateNextKeysOnRemoteKey(
-//                            key = "messagesRemoteKey",
-//                            nextKey = res.last().messageId,
-//                            nextKeyTime = "${res.last().time},next"
-//                        )
-//                        dbWrapper.updatePreviousKeysOnRemoteKey(
-//                            key = "messagesRemoteKey",
-//                            prevKey = res.first().messageId,
-//                            prevKeyTime = "${res.first().time},prev"
-//                        )
-//                        nextPageIndex = "${res.last().time},next"
-//                    }
-//                    res
-//                } else {
-//                    Log.wtf("MARIOCH", "TRYED SECOND LOAD with prev")
-//                    delay(1000)
-//                    val res = dbWrapper.getPaginatedPrevMessages(
-//                        splitKey[0].toLong(),
-//                        jumpFactor.toInt()
-//                    )
-//                    if (res.isNotEmpty()) {
-//                        dbWrapper.updateNextKeysOnRemoteKey(
-//                            key = "messagesRemoteKey",
-//                            nextKey = res.last().messageId,
-//                            nextKeyTime = "${res.last().time},next"
-//                        )
-//                        dbWrapper.updatePreviousKeysOnRemoteKey(
-//                            key = "messagesRemoteKey",
-//                            prevKey = res.first().messageId,
-//                            prevKeyTime = "${res.first().time},prev"
-//                        )
-//                        previousPageIndex = "${res.first().time},prev"
-//                    }
-//                    res
-//                }
 //            }
-//        } catch (e: Exception) {
-//            Log.v("MARIOCH", "EXC: $e")
-//            emptyList()
+//            previousKey != null -> {
+//                val res = dbWrapper.getMessagesForPrepend(previousKey, limit).map {
+//                    Log.wtf("MARIOCH","Loaded ${it.message} in prepend")
+//                    it.mapToDomainModel() }
+//                if (res.isNotEmpty()) { previousKey = res.first().messageId }
+//                res
+//            }
+//            else -> {
+//                val res = dbWrapper.getLastMessages(limit).map{
+//                    Log.wtf("MARIOCH","Loaded ${it.message} in refresh")
+//                    it.mapToDomainModel() }
+//                if (res.isNotEmpty()) {
+//                    nextKey = res.last().messageId
+//                    previousKey = res.first().messageId
+//                }
+//                res
+//            }
 //        }
-//        val data = response.map { it.mapToDomainModel() }
-//
-//        Log.wtf("MARIOCH", "RESPONSE IS NOT EMPTY AND HAS prev ${previousPageIndex} next $nextPageIndex KEYS")
-//
-//        return LoadResult.Page(
-//            data = data,
-//            prevKey = previousPageIndex,
-//            nextKey = nextPageIndex,
-//        )
+//        Log.wtf("MARIOCH","on load keys($type): N(${nextKey}) P(${previousKey})")
+//        return LoadResult.Page(data, previousKey, nextKey )
 //    }
-//}
+
+
+
+
+
+
+
+}

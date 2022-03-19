@@ -34,29 +34,24 @@ class MessagesRemoteMediator(
                 null }
             LoadType.APPEND -> {
                 Log.wtf("MARIOCH","Calling append (Remote Mediator)")
-                if (state.isEmpty()) {
-                    try {
-                        fireStoreDb.getFirstMessages()
-                    } catch (e: Throwable) {
-                        Log.wtf("MARIOCH", "GET MESSAGES THREW AN EXCEPTION $e")
-                        emptyList()
-                    }
-                } else {
+                try {
+                fireStoreDb.getAppendMessages(dbWrapper.getRemoteKey().nextKey ?: "no-key")
+                } catch (e: Throwable) {
+                    Log.wtf("MARIOCH", "GET MESSAGES THREW AN EXCEPTION $e")
                     emptyList()
                 }
+
             }
             LoadType.PREPEND -> {
-                Log.wtf("MARIOCH","Calling prepend(Remote Mediator)")
-                if (state.isEmpty()) {
+                Log.wtf("MARIOCH","Calling prepend (Remote Mediator)")
+
                     try {
-                        fireStoreDb.getFirstMessages()
+                        fireStoreDb.getPrependMessages(dbWrapper.getRemoteKey().prevKey ?: "no-key")
                     } catch (e: Throwable) {
                         Log.wtf("MARIOCH", "GET MESSAGES THREW AN EXCEPTION $e")
                         emptyList()
                     }
-                } else {
-                    emptyList()
-                }
+
             }
         }
         dbWrapper.insertAllMessages(data)

@@ -19,8 +19,8 @@ interface DatabaseDao {
     @Query("SELECT * FROM (SELECT * FROM messages_table WHERE time < (SELECT TIME FROM messages_table WHERE messageId = :key ) ORDER BY TIME DESC LIMIT :limit) ORDER BY TIME ASC")
     fun getMessagesForPrepend(key: String, limit: Int): List<MessageEntity>
 
-    @Query("SELECT * FROM(SELECT * FROM messages_table ORDER BY time DESC LIMIT 5) ORDER BY time ASC")
-    fun getLastMessages(): List<MessageEntity>
+    @Query("SELECT * FROM(SELECT * FROM messages_table ORDER BY time DESC LIMIT :limit) ORDER BY time ASC")
+    fun getLastMessages(limit: Int): List<MessageEntity>
 
     @Query("SELECT * FROM messages_table")
     fun observeTables(): Flow<List<MessageEntity>>
@@ -34,10 +34,10 @@ interface DatabaseDao {
     fun insertRemoteKey(remoteKey: RemoteKeyEntity)
 
     @Query("UPDATE remote_keys_table SET nextKey = :nextKey WHERE keyName = :key")
-    fun updateNextKeysOnRemoteKey(key: String, nextKey: Long)
+    fun updateNextKeysOnRemoteKey(key: String, nextKey: String)
 
     @Query("UPDATE remote_keys_table SET prevKey = :prevKey WHERE keyName = :key")
-    fun updatePreviousKeysOnRemoteKey(key: String, prevKey: Long)
+    fun updatePreviousKeysOnRemoteKey(key: String, prevKey: String)
 
     @Query("SELECT * FROM remote_keys_table WHERE keyName = :keyName LIMIT 1")
     fun getRemoteKey(keyName: String): RemoteKeyEntity

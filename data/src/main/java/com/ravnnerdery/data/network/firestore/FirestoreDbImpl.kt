@@ -41,6 +41,42 @@ class FirestoreDbImpl @Inject constructor() : FirestoreDb {
             }
     }
 
+    override suspend fun getAppendMessages(key: String): List<DocumentSnapshot> {
+        var newMessagesQuery: Query? = null
+        return try {
+            val keySnapshot: DocumentSnapshot = FirebaseFirestore.getInstance().collection(
+                FIREBASE_COLLECTION
+            ).document(key).get().await()
+            newMessagesQuery = FirebaseFirestore.getInstance()
+                .collection(FIREBASE_COLLECTION)
+                .orderBy("time", Query.Direction.ASCENDING)
+                .limit(10)
+                .startAfter(keySnapshot)
+            newMessagesQuery.get().await().documents
+        } catch (e: Throwable) {
+            Log.wtf("MARIOCH", "GET APPEND IN FIREBASE MESSAGES THREW AN EXCEPTION $e")
+            emptyList()
+        }
+    }
+
+    override suspend fun getPrependMessages(key: String): List<DocumentSnapshot> {
+        var newMessagesQuery: Query? = null
+        return try {
+            val keySnapshot: DocumentSnapshot = FirebaseFirestore.getInstance().collection(
+                FIREBASE_COLLECTION
+            ).document(key).get().await()
+            newMessagesQuery = FirebaseFirestore.getInstance()
+                .collection(FIREBASE_COLLECTION)
+                .orderBy("time", Query.Direction.ASCENDING)
+                .limit(10)
+                .startAfter(keySnapshot)
+            newMessagesQuery.get().await().documents
+        } catch (e: Throwable) {
+            Log.wtf("MARIOCH", "GET PREPEND IN FIREBASE MESSAGES THREW AN EXCEPTION $e")
+            emptyList()
+        }
+    }
+
     override suspend fun getFirstMessages(): List<DocumentSnapshot> {
         var newMessagesQuery: Query? = null
         return try {
@@ -98,6 +134,8 @@ class FirestoreDbImpl @Inject constructor() : FirestoreDb {
             emptyList()
         }
     }
+
+
 
     override fun getMessageEvents(key: Pair<String, String?>?): Flow<List<DocumentSnapshot>> =
         callbackFlow {
