@@ -4,15 +4,15 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.ravnnerdery.data.mappers.DomainMapper
 import com.ravnnerdery.domain.models.Message
+import com.ravnnerdery.domain.other.DomainMapper
 
-@Entity(tableName = "messages_table", indices = [Index(value =["messageId"], unique = true)])
-class MessageEntity (
+@Entity(tableName = "messages_table", indices = [Index(value = ["messageId"], unique = true)])
+class MessageEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     @ColumnInfo(name = "messageId")
-    val messageId : String,
+    val messageId: String,
     @ColumnInfo
     val message: String,
     @ColumnInfo
@@ -23,7 +23,7 @@ class MessageEntity (
     val userId: String,
     @ColumnInfo
     val image: String?,
-): DomainMapper<Message> {
+) : DomainMapper<Message> {
     override fun mapToDomainModel(): Message {
         return Message(message, time, read, userId, messageId, image)
     }

@@ -37,6 +37,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
+        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
+
+    kotlinOptions {
         jvmTarget = '1.8'
     }
     dataBinding {
@@ -141,7 +145,6 @@ dependencies {
     implementation "androidx.paging:paging-guava:$version_paging"
     implementation "androidx.paging:paging-compose:1.0.0-alpha14"
     // Work Manager
-    implementation 'androidx.work:work-runtime-ktx:2.7.0'
 
     //Firebase
     implementation platform('com.google.firebase:firebase-bom:29.1.0')

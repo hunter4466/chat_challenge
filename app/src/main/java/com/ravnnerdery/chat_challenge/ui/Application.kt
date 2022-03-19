@@ -1,22 +1,29 @@
 package com.ravnnerdery.chat_challenge.ui
 
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemsIndexed
 import coil.ImageLoader
 import com.ravnnerdery.chat_challenge.application.MainViewModel
+import com.ravnnerdery.chat_challenge.ui.inBox.Inbox
 
 @Composable
 fun Application(
     viewModel: MainViewModel,
-    imageLoader: ImageLoader
+    imageLoader: ImageLoader,
+    sendMessage: (String) -> Unit
 ) {
     val messages = viewModel.getPaginatedData().collectAsLazyPagingItems()
-    LazyColumn{
-                itemsIndexed(messages){ _, msg ->
-                    Text(text = msg?.message ?: "No message")
-                }
+    Column(
+        modifier = Modifier.padding(bottom = 32.dp)
+    ) {
+        Inbox(
+            messages = messages,
+            sendMessage = { sendMessage(it) },
+        )
     }
+
 }

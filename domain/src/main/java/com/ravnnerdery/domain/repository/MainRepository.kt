@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface MainRepository {
     fun providePaginatedDataSource(): Flow<PagingData<Message>>
+    fun insertNewMessage(message: String)
 }
