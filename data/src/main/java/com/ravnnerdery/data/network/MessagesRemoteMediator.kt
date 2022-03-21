@@ -1,61 +1,47 @@
 package com.ravnnerdery.data.network
 
-import android.util.Log
 import androidx.paging.*
 import com.ravnnerdery.data.database.DbWrapper
-import com.ravnnerdery.data.database.MessagesDatabase
 import com.ravnnerdery.data.database.models.MessageEntity
 import com.ravnnerdery.data.network.firestore.FirestoreDb
-import com.ravnnerdery.domain.models.Message
-import kotlinx.coroutines.delay
-import javax.inject.Inject
+import java.util.concurrent.TimeUnit
 
 
 @OptIn(ExperimentalPagingApi::class)
 class MessagesRemoteMediator(
     private val dbWrapper: DbWrapper,
-    private val database: MessagesDatabase,
     private val fireStoreDb: FirestoreDb,
-) : RemoteMediator<String, Message>() {
+) : RemoteMediator<Int, MessageEntity>() {
 
     override suspend fun initialize(): InitializeAction {
-        Log.wtf("MARIOCH", "CALLED INITIALIZE IN REMOTE MEDIATOR")
-        return InitializeAction.SKIP_INITIAL_REFRESH
+        val cacheTimeout = TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)
+        return if (System.currentTimeMillis() - dbWrapper.getUpdatedDatabaseTime() >= cacheTimeout) {
+            InitializeAction.SKIP_INITIAL_REFRESH
+        } else {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        }
     }
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<String, Message>
+        state: PagingState<Int, MessageEntity>
     ): MediatorResult {
-        Log.wtf("MARIOCH","Called Mediator")
+        var isEmpty = false
         val data = when (loadType) {
             LoadType.REFRESH -> {
-                Log.wtf("MARIOCH","Calling refresh (Remote Mediator)")
-                null }
+                fireStoreDb.getFirstMessages()
+            }
             LoadType.APPEND -> {
-                Log.wtf("MARIOCH","Calling append (Remote Mediator)")
-                try {
-                fireStoreDb.getAppendMessages(dbWrapper.getRemoteKey().nextKey ?: "no-key")
-                } catch (e: Throwable) {
-                    Log.wtf("MARIOCH", "GET MESSAGES THREW AN EXCEPTION $e")
-                    emptyList()
-                }
-
+                val res = fireStoreDb.getAppendMessages(dbWrapper.getKeyForAppend())
+                if (res.isEmpty()) isEmpty = true
+                res
             }
             LoadType.PREPEND -> {
-                Log.wtf("MARIOCH","Calling prepend (Remote Mediator)")
-
-                    try {
-                        fireStoreDb.getPrependMessages(dbWrapper.getRemoteKey().prevKey ?: "no-key")
-                    } catch (e: Throwable) {
-                        Log.wtf("MARIOCH", "GET MESSAGES THREW AN EXCEPTION $e")
-                        emptyList()
-                    }
-
+                emptyList()
             }
         }
+
         dbWrapper.insertAllMessages(data)
-        Log.wtf("MARIOCH","Mediator finished with enDofPagination: ${data?.isEmpty() ?: false}")
-       return MediatorResult.Success(endOfPaginationReached = data?.isEmpty() ?: false)
+        return MediatorResult.Success(endOfPaginationReached = isEmpty)
     }
 }
