@@ -5,6 +5,6 @@ data class Message(
     val time: Long,
     val read: Boolean,
     val userId: String,
-    val messageId : String,
+    val messageId: String,
     val image: String?,
 )
