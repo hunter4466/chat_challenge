@@ -1,53 +1,52 @@
 package com.ravnnerdery.data.database
 
 import android.util.Log
-import androidx.room.ColumnInfo
-import androidx.room.PrimaryKey
+import androidx.paging.PagingSource
 import com.google.firebase.firestore.DocumentSnapshot
 import com.ravnnerdery.data.database.models.MessageEntity
-import com.ravnnerdery.data.database.models.RemoteKeyEntity
-import com.ravnnerdery.domain.other.Constants.MSG_REMOTE_KEY
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.withContext
+import com.ravnnerdery.data.network.firestore.FirestoreDb
+import com.ravnnerdery.domain.other.Constants.FIREBASE_MESSAGE_ID
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 interface DbWrapper {
-    // OBSERVERS
-    fun observeTablesProvider(): Flow<Boolean>
-    fun removeObservables()
     // MESSAGES
     suspend fun insertAllMessages(messages: List<DocumentSnapshot>?)
-    suspend fun getMessagesForAppend(key: String, limit: Int): List<MessageEntity>
-    suspend fun getMessagesForPrepend(key: String, limit: Int): List<MessageEntity>
     suspend fun getLastMessages(limit: Int): List<MessageEntity>
-    // REMOTE KEYS
-    suspend fun updNextRemoteKey(nextKey: String)
-    suspend fun updPrevRemoteKey(prevKey: String)
-    suspend fun getRemoteKey(): RemoteKeyEntity
-    suspend fun insertRemoteKey(keyName: String, nextKey: String, prevKey: String)
+    fun getPaginatedMessages(): PagingSource<Int, MessageEntity>
+    suspend fun insertNewMessage(message: String, id: String)
 
+    // REMOTE KEYS
+    suspend fun getKeyForPrepend(): String
+    suspend fun getKeyForAppend(): String
+
+    // DB UPDATE
+    suspend fun updateDatabaseUpdatedAt()
+    suspend fun getUpdatedDatabaseTime(): Long
 }
 
 class DbWrapperImpl @Inject constructor(
-    private val databaseDao: DatabaseDao
+    private val databaseDao: DatabaseDao,
+    private val database: MessagesDatabase,
+    private val fireStoreDb: FirestoreDb
 ) : DbWrapper {
+    private val viewModelJob = Job()
+    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     /**
      * <<<<<<<<<< OBSERVERS >>>>>>>>>>>
      */
-
-    private val observeTables = MutableStateFlow(false)
-    override fun observeTablesProvider(): Flow<Boolean> {
-        return observeTables
+    init {
+        uiScope.launch(Dispatchers.IO) {
+            fireStoreDb.getMessageEvents().collect {
+                if (it.isNotEmpty()) {
+                    val newMessage = it[0].get("message").toString()
+                    insertNewMessage(newMessage, it[0].id)
+                }
+            }
+        }
     }
 
-    override fun removeObservables() {
-        Log.wtf("MARIOCH","<<<<<<<<<<<<TRYING TO REMOVE OBSERVABLE>>>>>>>>>>>>>>")
-        observeTables.value = false
-    }
     /**
      * <<<<<<<<<< MESSAGES >>>>>>>>>>>
      */
@@ -66,61 +65,70 @@ class DbWrapperImpl @Inject constructor(
                         read = message.get("read") as Boolean
                     )
                 )
-                Log.v("MARIOCH","Added some data with this items: ${message.id}, ${message.get("message")}, ${message.get("time")}, ${message.get("userId")}, ${message.get("image")}, ${message.get("read")}")
+                Log.v(
+                    "MARIOCH",
+                    "Added some data with this items: ${message.id}, ${message.get("message")}, ${
+                        message.get("time")
+                    }, ${message.get("userId")}, ${message.get("image")}, ${message.get("read")}"
+                )
             }
-            observeTables.value = true
         }
-    }
-
-    override suspend fun getMessagesForAppend(key: String, limit: Int): List<MessageEntity> {
-        return withContext(Dispatchers.IO) {
-            Log.wtf("MARIOCH","calledappenddbfunction with key: $key")
-            databaseDao.getMessagesForAppend(key, limit)
-        }
-    }
-
-    override suspend fun getMessagesForPrepend(key: String, limit: Int): List<MessageEntity> {
-        return withContext(Dispatchers.IO) {
-            Log.wtf("MARIOCH","calledprependdbfunction with key: $key")
-                databaseDao.getMessagesForPrepend(key, limit)
-        }
+        updateDatabaseUpdatedAt()
     }
 
 
     override suspend fun getLastMessages(limit: Int): List<MessageEntity> {
         return withContext(Dispatchers.IO) {
-            Log.wtf("MARIOCH","calledrefreshdbfunction")
+            Log.wtf("MARIOCH", "calledrefreshdbfunction")
             databaseDao.getLastMessages(limit)
         }
+    }
+
+    override fun getPaginatedMessages(): PagingSource<Int, MessageEntity> {
+        return databaseDao.getPaginatedMessages()
+    }
+
+    override suspend fun insertNewMessage(message: String, id: String) {
+        withContext(Dispatchers.IO) {
+            databaseDao.insertMessage(
+                MessageEntity(
+                    messageId = id,
+                    message = message,
+                    time = System.currentTimeMillis(),
+                    userId = FIREBASE_MESSAGE_ID,
+                    image = "https://i.picsum.photos/id/391/200/300.jpg?hmac=3xP-y2PRN2E0__aPOCp1sja7XrimKgLQAMiSaNd0Cko",
+                    read = false,
+                )
+            )
+        }
+        updateDatabaseUpdatedAt()
     }
 
     /**
      * <<<<<<<<<< REMOTE KEYS >>>>>>>>>>>
      */
 
-    override suspend fun updNextRemoteKey(nextKey: String) {
-        withContext(Dispatchers.IO){
-            databaseDao.updateNextKeysOnRemoteKey(MSG_REMOTE_KEY,nextKey)
-        }
-    }
-
-    override suspend fun updPrevRemoteKey(prevKey: String) {
-        withContext(Dispatchers.IO){
-            databaseDao.updatePreviousKeysOnRemoteKey(MSG_REMOTE_KEY,prevKey)
-        }
-    }
-
-    override suspend fun getRemoteKey(): RemoteKeyEntity {
+    override suspend fun getKeyForPrepend(): String {
         return withContext(Dispatchers.IO) {
-            databaseDao.getRemoteKey(MSG_REMOTE_KEY)
+            databaseDao.getKeyForPrepend()
         }
     }
 
-    override suspend fun insertRemoteKey(keyName: String, nextKey: String, prevKey: String) {
-        withContext(Dispatchers.IO) {
-            databaseDao.insertRemoteKey(
-                RemoteKeyEntity(id = 0, keyName = keyName, nextKey = nextKey, prevKey = prevKey)
-            )
+    override suspend fun getKeyForAppend(): String {
+        return withContext(Dispatchers.IO) {
+            databaseDao.getKeyForAppend()
         }
+    }
+
+    /**
+     * <<<<<<<<<< DB UPDATE >>>>>>>>>>>
+     */
+
+    override suspend fun updateDatabaseUpdatedAt() {
+        database.updateDatabaseUpdatedAt()
+    }
+
+    override suspend fun getUpdatedDatabaseTime(): Long {
+        return database.lastUpdated
     }
 }

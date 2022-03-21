@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.ravnnerdery.domain.models.Message
-import com.ravnnerdery.domain.other.DomainMapper
+import com.ravnnerdery.data.mappers.DomainMapper
 
 @Entity(tableName = "messages_table", indices = [Index(value = ["messageId"], unique = true)])
 class MessageEntity(
