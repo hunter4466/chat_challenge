@@ -1,4 +1,5 @@
 package com.ravnnerdery.chat_challenge.application
+
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -30,5 +31,4 @@ class MainApplication : Application() {
             manager.createNotificationChannel(mediaChannel)
         }
     }
-
 }

@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "1007832045812",
-    "project_id": "mario-chat-app",
-    "storage_bucket": "mario-chat-app.appspot.com"
+    "project_number": "487103354639",
+    "project_id": "chatapp-a6ba1",
+    "storage_bucket": "chatapp-a6ba1.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1007832045812:android:d308f4213a604dbbd2a6a1",
+        "mobilesdk_app_id": "1:487103354639:android:47d6047d657e07a420507a",
         "android_client_info": {
           "package_name": "com.ravnnerdery.data"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1007832045812-rrnbk47cf75jbef3a6sd31ne87jlu2s2.apps.googleusercontent.com",
+          "client_id": "487103354639-s3o3455n73dk9erjpdfvqd9j1hee9ak5.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD6l26FvtErkOAUZa2DkWSAnQR_AtJ6tQM"
+          "current_key": "AIzaSyDbf_763ZoveG571g-7Q8R2MFIy_kLznTg"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1007832045812-rrnbk47cf75jbef3a6sd31ne87jlu2s2.apps.googleusercontent.com",
+              "client_id": "487103354639-s3o3455n73dk9erjpdfvqd9j1hee9ak5.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
