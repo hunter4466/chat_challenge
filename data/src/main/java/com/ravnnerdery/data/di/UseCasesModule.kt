@@ -1,9 +1,6 @@
 package com.ravnnerdery.data.di
 
-import com.ravnnerdery.data.useCases.InsertNewMessageUseCase
-import com.ravnnerdery.data.useCases.InsertNewMessageUseCaseImpl
-import com.ravnnerdery.data.useCases.ProvidePaginatedDataSourceUseCase
-import com.ravnnerdery.data.useCases.ProvidePaginatedDataSourceUseCaseImpl
+import com.ravnnerdery.data.useCases.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,6 +25,14 @@ class UseCasesModule {
         insertNewMessageUseCaseImpl: InsertNewMessageUseCaseImpl
     ): InsertNewMessageUseCase {
         return insertNewMessageUseCaseImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateMessageToReadUseCase(
+        provideUpdateMessageToReadUseCaseImpl: ProvideUpdateMessageToReadUseCaseImpl
+    ): ProvideUpdateMessageToReadUseCase {
+        return provideUpdateMessageToReadUseCaseImpl
     }
 
 }

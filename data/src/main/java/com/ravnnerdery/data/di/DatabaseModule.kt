@@ -13,7 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-private const val CHAT_CHALLENGE_DATABASE = "Chat_challenge_db08"
+private const val CHAT_CHALLENGE_DATABASE = "Chat_challenge_db"
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -41,7 +41,7 @@ class DatabaseModule {
     @Singleton
     fun provideDbWrapper(
         dbWrapperImpl: DbWrapperImpl
-    ): DbWrapper{
+    ): DbWrapper {
         return dbWrapperImpl
     }
 
